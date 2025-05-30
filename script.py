@@ -25,14 +25,15 @@ import json
 
 # FILE TO READ JSON EXPORT
 JSON_FILE = 'data.json'
+CLASSES_FILE = 'classes.json'
 
 # DIRECTORIES FOR THINGS
 VIDEOS = './videos'
 IMAGES = './images'
 LABELS = './labels'
 
-# Still frame output type
-FRAME_OUTPUT_TYPE = 'png'
+# Still frame output type - jpg is best performance but png and others are supported
+FRAME_OUTPUT_TYPE = 'jpg'
 
 # Make video folder
 Path(VIDEOS).mkdir(parents = False, exist_ok = True)
@@ -49,7 +50,16 @@ with open(JSON_FILE) as f: data = json.load(f)
 #data[0]['annotations'][0]['result'][0]['value']['sequence'][0].keys()
 #dict_keys(['frame', 'enabled', 'rotation', 'x', 'y', 'width', 'height', 'time'])
 
+def export_frames(video, video_name, frame_numbers):
+    # FFMPEG do the thing
+    for frame in frame_numbers:
+        process = subprocess.run(
+            f"ffmpeg -i {str(video)} -vf \"select=eq(n\,{frame)\" -vsync 0 -frames:v 1 {IMAGES}/{video_name}_{frame:05d}.{FRAME_OUTPUT_TYPE}",
+            shell = True
+        )
+
 # Process each video
+labels = []
 for video_data in data:
     # Locate video and get video name
     video = Path(f"{VIDEOS}/{video_data['file_upload']}")
@@ -59,20 +69,30 @@ for video_data in data:
 
     # MAYBE CHECK RESULT_COUNT - it might be more than 1?????
     # Process each frame
-    for frame_data in video_data['annotations'][0]['result'][0]['value']['sequence']:
-        # Get frame number we are processing
-        frame_number = frame_data['frame']
-        
-        # FFMPEG do the thing
-        process = subprocess.run(
-                f"ffmpeg -i {str(video)} -vf \"select=eq(n\,{frame_number})\" -vsync 0 -frames:v 1 {IMAGES}/{video_name}_{frame_number:05d}.{FRAME_OUTPUT_TYPE}",
-                shell = True
-        )
+    frame_numbers = set()
+    for result in video_data['annotations'][0]['result']:
+        if len(result['value']['labels']) > 1: Throw Exception("DANG: MULTILABEL")
+        label = result['value']['labels'][0]
+        if label not in labels: labels.add(label)
+        label_number = labels.index(label)
 
-        # Convert and save frame txt file in OBB format: [class_id x_center y_center width height angle]
-        class_id = 'Drone'
-        width = frame_data['width']
-        height = frame_data['height']
-        Path(f"{LABELS}/{video_name}_{frame_number:05d}.txt").write_text(
-                f"{class_id} {frame_data['x'] + width / 2} {frame_data['y'] + height / 2} {width} {height} {frame_data['rotation']}"
-        )
+        for sequence in result['value']['sequence']:
+            [0]['value']['sequence']:
+            video_data['annotations'][0]['result'][0]['value']['sequence']:
+            # Get frame number we are processing
+            frame_number = frame_data['frame']
+            frame_numbers.add(frame_number)
+
+            # Convert and save frame txt file in OBB format: [class_id x_center y_center width height angle]
+            width = frame_data['width']
+            height = frame_data['height']
+            
+            file = Path(f"{LABELS}/{video_name}_{frame_number:05d}.txt")
+            with file.open('a') as f:
+                f.write(
+                    f"{label_number} {frame_data['x'] + width / 2} {frame_data['y'] + height / 2} {width} {height} {frame_data['rotation']}"
+                )
+    export_frames(video, video_name, frame_numbers)
+
+# Create classes.json
+json.dump({label: labels.index(label) for label in labels}, Path(CLASSES_FILE), indent=4)
