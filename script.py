@@ -55,6 +55,19 @@ def export_frames(video, video_name, frame_numbers):
         shell = True
     )
 
+# Get video resolution
+def get_video_resolution(video):
+    cmd = [
+        'ffprobe', '-v', 'error',
+        '-select_streams', 'v:0',
+        '-show_entries', 'stream=width,height',
+        '-of', 'csv=s=x:p=0',
+        str(video)
+    ]
+    output = subprocess.check_output(cmd).decode().strip()
+    width, height = map(int, output.split('x'))
+    return width, height
+
 # Process each video
 labels = []
 for video_data in data:
@@ -63,6 +76,9 @@ for video_data in data:
 
     # Get video name
     video_name = video.stem
+
+    # Get video resolution
+    video_width, video_height = get_video_resolution(video)
 
     # MAYBE CHECK RESULT_COUNT - it might be more than 1?????
     # Process each frame, maintain frame number list for video export
@@ -89,7 +105,7 @@ for video_data in data:
                 f.write(
                     # Python YOLO package does not use rotation
                     #f"{label_number} {sequence['x'] + width / 2} {sequence['y'] + height / 2} {width} {height} {sequence['rotation']}"
-                    f"{label_number} {x} {y} {width} {height}"
+                    f"{label_number} {sequence['x'] / video_width} {sequence['y'] / video_height} {sequence['width'] / video_width} {sequence['height'] / video_height}"
                 )
 
     # Export video frames
