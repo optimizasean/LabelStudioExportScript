@@ -54,7 +54,7 @@ def export_frames(video, video_name, frame_numbers):
     # FFMPEG do the thing
     for frame in frame_numbers:
         process = subprocess.run(
-            f"ffmpeg -i {str(video)} -vf \"select=eq(n\,{frame)\" -vsync 0 -frames:v 1 {IMAGES}/{video_name}_{frame:05d}.{FRAME_OUTPUT_TYPE}",
+            f"ffmpeg -i {str(video)} -vf \"select=eq(n\,{frame}\" -vsync 0 -frames:v 1 {IMAGES}/{video_name}_{frame:05d}.{FRAME_OUTPUT_TYPE}",
             shell = True
         )
 
@@ -71,26 +71,24 @@ for video_data in data:
     # Process each frame
     frame_numbers = set()
     for result in video_data['annotations'][0]['result']:
-        if len(result['value']['labels']) > 1: Throw Exception("DANG: MULTILABEL")
+        if len(result['value']['labels']) > 1: raise Exception("DANG: MULTILABEL")
         label = result['value']['labels'][0]
         if label not in labels: labels.add(label)
         label_number = labels.index(label)
 
         for sequence in result['value']['sequence']:
-            [0]['value']['sequence']:
-            video_data['annotations'][0]['result'][0]['value']['sequence']:
             # Get frame number we are processing
-            frame_number = frame_data['frame']
+            frame_number = sequence['frame']
             frame_numbers.add(frame_number)
 
             # Convert and save frame txt file in OBB format: [class_id x_center y_center width height angle]
-            width = frame_data['width']
-            height = frame_data['height']
+            width = sequence['width']
+            height = sequence['height']
             
             file = Path(f"{LABELS}/{video_name}_{frame_number:05d}.txt")
             with file.open('a') as f:
                 f.write(
-                    f"{label_number} {frame_data['x'] + width / 2} {frame_data['y'] + height / 2} {width} {height} {frame_data['rotation']}"
+                    f"{label_number} {sequence['x'] + width / 2} {sequence['y'] + height / 2} {width} {height} {sequence['rotation']}"
                 )
     export_frames(video, video_name, frame_numbers)
 
