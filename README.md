@@ -19,6 +19,11 @@ This script will:
   - Outputs the frame as `./images/[video_name]_[frame_number:XXXXX].[FRAME_OUTPUT_TYPE]`
   - Outputs the label as `./labels/[video_name]_[frame_number:XXXXX].txt`
 
+#### Side Note
+
+I used to use single frame extraction, changed to multi-frame extraction (for like 10000% speedup boost).
+Also removed the 5 digit extract requirement.
+
 ## How to use
 
 You must export as YOLOv8 OBB with images, then export as JSON.

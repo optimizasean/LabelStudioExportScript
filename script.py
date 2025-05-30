@@ -46,10 +46,7 @@ Path(VIDEOS).mkdir(parents = False, exist_ok = True)
 data = None
 with open(JSON_FILE) as f: data = json.load(f)
 
-#    $                 X            X                       $
-#data[0]['annotations'][0]['result'][0]['value']['sequence'][0].keys()
-#dict_keys(['frame', 'enabled', 'rotation', 'x', 'y', 'width', 'height', 'time'])
-
+# Function to export frames with ffmpeg
 def export_frames(video, video_name, frame_numbers):
     # FFMPEG do the thing
     select_indexes = '+'.join([f"eq(n\\,{number})" for number in frame_numbers])
@@ -68,7 +65,7 @@ for video_data in data:
     video_name = video.stem
 
     # MAYBE CHECK RESULT_COUNT - it might be more than 1?????
-    # Process each frame
+    # Process each frame, maintain frame number list for video export
     frame_numbers = set()
     for result in video_data['annotations'][0]['result']:
         if len(result['value']['labels']) > 1: raise Exception("DANG: MULTILABEL")
@@ -76,6 +73,7 @@ for video_data in data:
         if label not in labels: labels.append(label)
         label_number = labels.index(label)
 
+        # Go through frame sequence for one result
         for sequence in result['value']['sequence']:
             # Get frame number we are processing
             frame_number = sequence['frame']
@@ -85,11 +83,16 @@ for video_data in data:
             width = sequence['width']
             height = sequence['height']
             
+            # Write labels (append if file exists for that frame)
             file = Path(f"{LABELS}/{video_name}_{frame_number}.txt")
             with file.open('a') as f:
                 f.write(
-                    f"{label_number} {sequence['x'] + width / 2} {sequence['y'] + height / 2} {width} {height} {sequence['rotation']}"
+                    # Python YOLO package does not use rotation
+                    #f"{label_number} {sequence['x'] + width / 2} {sequence['y'] + height / 2} {width} {height} {sequence['rotation']}"
+                    f"{label_number} {sequence['x'] + width / 2} {sequence['y'] + height / 2} {width} {height}"
                 )
+
+    # Export video frames
     export_frames(video, video_name, frame_numbers)
 
 # Create classes.json
