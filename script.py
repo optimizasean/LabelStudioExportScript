@@ -89,7 +89,7 @@ for video_data in data:
                 f.write(
                     # Python YOLO package does not use rotation
                     #f"{label_number} {sequence['x'] + width / 2} {sequence['y'] + height / 2} {width} {height} {sequence['rotation']}"
-                    f"{label_number} {sequence['x'] + width / 2} {sequence['y'] + height / 2} {width} {height}"
+                    f"{label_number} {x} {y} {width} {height}"
                 )
 
     # Export video frames

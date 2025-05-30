@@ -2,6 +2,10 @@
 
 Label Studio JSON to OBB export
 
+YOLOv8 OBB format: `[{class_id} {center_x} {center_y} {width} {height} {angle}]`
+
+Python YOLO format: `[{class_id} {x} {y} {width} {height}]`
+
 ## What it does
 
 This script converts label studio failed exports.
