@@ -52,11 +52,11 @@ with open(JSON_FILE) as f: data = json.load(f)
 
 def export_frames(video, video_name, frame_numbers):
     # FFMPEG do the thing
-    for frame in frame_numbers:
-        process = subprocess.run(
-            f"ffmpeg -i {str(video)} -vf \"select=eq(n\,{frame})\" -vsync 0 -frames:v 1 {IMAGES}/{video_name}_{frame:05d}.{FRAME_OUTPUT_TYPE}",
-            shell = True
-        )
+    select_indexes = '+'.join([f"eq(n\\,{number})" for number in frame_numbers])
+    process = subprocess.run(
+        f"ffmpeg -i {str(video)} -vf \"select='{select_indexes}'\" -vsync 0 -frame_pts true {IMAGES}/{video_name}_%d.{FRAME_OUTPUT_TYPE}",
+        shell = True
+    )
 
 # Process each video
 labels = []
@@ -85,7 +85,7 @@ for video_data in data:
             width = sequence['width']
             height = sequence['height']
             
-            file = Path(f"{LABELS}/{video_name}_{frame_number:05d}.txt")
+            file = Path(f"{LABELS}/{video_name}_{frame_number}.txt")
             with file.open('a') as f:
                 f.write(
                     f"{label_number} {sequence['x'] + width / 2} {sequence['y'] + height / 2} {width} {height} {sequence['rotation']}"
