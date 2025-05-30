@@ -196,3 +196,6 @@ cython_debug/
 # Ignore the video file and output png files
 *.mp4
 *.png
+
+# Also ignore output txt files
+*.txt
