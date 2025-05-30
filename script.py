@@ -54,7 +54,7 @@ def export_frames(video, video_name, frame_numbers):
     # FFMPEG do the thing
     for frame in frame_numbers:
         process = subprocess.run(
-            f"ffmpeg -i {str(video)} -vf \"select=eq(n\,{frame}\" -vsync 0 -frames:v 1 {IMAGES}/{video_name}_{frame:05d}.{FRAME_OUTPUT_TYPE}",
+            f"ffmpeg -i {str(video)} -vf \"select=eq(n\,{frame})\" -vsync 0 -frames:v 1 {IMAGES}/{video_name}_{frame:05d}.{FRAME_OUTPUT_TYPE}",
             shell = True
         )
 
@@ -73,7 +73,7 @@ for video_data in data:
     for result in video_data['annotations'][0]['result']:
         if len(result['value']['labels']) > 1: raise Exception("DANG: MULTILABEL")
         label = result['value']['labels'][0]
-        if label not in labels: labels.add(label)
+        if label not in labels: labels.append(label)
         label_number = labels.index(label)
 
         for sequence in result['value']['sequence']:
@@ -93,4 +93,4 @@ for video_data in data:
     export_frames(video, video_name, frame_numbers)
 
 # Create classes.json
-json.dump({label: labels.index(label) for label in labels}, Path(CLASSES_FILE), indent=4)
+with open(Path(CLASSES_FILE), 'w') as file: json.dump({label: labels.index(label) for label in labels}, file, indent=4)
