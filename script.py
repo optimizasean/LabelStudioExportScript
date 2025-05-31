@@ -103,9 +103,12 @@ for video_data in data:
             file = Path(f"{LABELS}/{video_name}_{frame_number}.txt")
             with file.open('a') as f:
                 f.write(
-                    # Python YOLO package does not use rotation
-                    #f"{label_number} {sequence['x'] + width / 2} {sequence['y'] + height / 2} {width} {height} {sequence['rotation']}"
-                    f"{label_number} {sequence['x'] / video_width} {sequence['y'] / video_height} {sequence['width'] / video_width} {sequence['height'] / video_height}"
+                    # Use centered coordinates
+                    x = sequence['x'] + ( width / 2 )
+                    y = sequence['y'] + ( height / 2 )
+                    # Python YOLO package does not use rotation or normalize coordinates?
+                    #f"{label_number} {x} {y} {width} {height} {sequence['rotation']}"
+                    f"{label_number} {x / video_width} {y / video_height} {sequence['width'] / video_width} {sequence['height'] / video_height}"
                 )
 
     # Export video frames
